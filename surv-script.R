@@ -5,15 +5,15 @@ library(tidyverse)
 #only uninoculated b/c that's what we find in nature
 #random effect for block 
 
-traits <- read.csv("~/Desktop/Pettit_seed-survival/Seed-Traits_cleaning.csv")
-
-surv <- read.csv("~/Desktop/Pettit_seed-survival/Seed-bag-survival - Sheet1.csv")
-
+traits <- read.csv("~/Desktop/seedbagsurvival/Seed-Traits_cleaning.csv", header=FALSE)
+surv <- read.csv("~/Desktop/seedbagsurvival/Seed-bag-survival - Sheet1.csv")
 surv <- merge(surv, traits, by = "Species", all.y = F, all.x = T)
 
+colnames(traits) <- traits[1,]
 #removing Notes and X columns
 surv <- subset(surv, select = -c(Notes, X.1))
 surv <- surv[-c(86,87,88,89,90),]
+
 
 #lolium = Festuca perennis, lotus = Acmispon americanus, Taeniatherum = Elymus caput-medusae, stipa is gone 
 
@@ -136,14 +136,52 @@ ggplot(surv, aes(x = shape/size, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
 #literally a straight line, givin me nothin
-#idk why I'm doing these, i'm just messing around, seein new ways to manupulate the data 
+#idk why I'm doing these, i'm just messing around, seein new ways to manipulate the data 
 
 ggplot(surv.3, aes(x = Species, y = n.viable)) + 
   geom_boxplot(aes(color = morphologicalunit))
 
+surv.forbs <- surv[-c(16,17,18,19,20,21,22,23,24,25,41,42,43,44,45,51,52,53,54,55),]
+
+#no longer showing any line of fit anymore, idk why, just got updated? 
+ggplot(surv.forbs, aes(x = wing.loading, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
+
+ggplot(surv.forbs, aes(x = coat.perm, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
+coat.perm.under1000.forbs <- surv.forbs[-c(56:60),]
+ggplot(coat.perm.under1000, aes(x = as.factor(coat.perm), y = n.viable)) +
+  geom_jitter(aes(color = code)) + 
+  geom_smooth(method="lm")
 
 
+ggplot(surv.forbs, aes(x = coat.thick, y = n.viable)) +
+  geom_point(aes(color = code)) +
+  geom_smooth(method="lm")
 
+ggplot(surv.forbs, aes(x = mass.mg, y = n.viable)) +
+  geom_point(aes(color = code)) +
+  geom_smooth(method="lm")
 
+ggplot(surv.forbs, aes(x = height.cm, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
 
+ggplot(surv.forbs, aes(x = shape, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
 
+ggplot(surv.forbs, aes(x = size, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
+
+ggplot(surv.forbs, aes(x = coat.thick/mass.mg, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
+#okay now the division isn't working anymore to create ratios sooooo idk why this is happening, this new update hates me 
+
+ggplot(surv, aes(x = coat.thick/size, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
