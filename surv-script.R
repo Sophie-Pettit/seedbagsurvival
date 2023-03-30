@@ -1,30 +1,33 @@
+#load libraries####
 library(ggplot2)
 library(tidyverse)
-
+install.packages("ggfortify")
+library(ggfortify)
+rm(list=ls())
 #try to use the data with just the forbs to clear out noise 
 #only uninoculated b/c that's what we find in nature
 #random effect for block 
-
-traits <- read.csv("~/Desktop/seedbagsurvival/Seed-Traits_cleaning.csv", header=FALSE)
+#load datasets####
+traits <- read.csv("~/Desktop/seedbagsurvival/20230328_Seed-Traits_cleaning.csv")
 surv <- read.csv("~/Desktop/seedbagsurvival/Seed-bag-survival - Sheet1.csv")
 surv <- merge(surv, traits, by = "Species", all.y = F, all.x = T)
 
-colnames(traits) <- traits[1,]
 #removing Notes and X columns
 surv <- subset(surv, select = -c(Notes, X.1))
-surv <- surv[-c(86,87,88,89,90),]
+surv <- filter(surv, Species!="Stipa pulchra", X!="inoculated")
 
 
 #lolium = Festuca perennis, lotus = Acmispon americanus, Taeniatherum = Elymus caput-medusae, stipa is gone 
-
+#surv plots####
 ggplot(surv, aes(x = Species, y = n.viable)) + 
   geom_boxplot()
   theme_bw()
+str(surv)
 
-ggplot(surv, aes(x = wing.loading, y = n.viable)) +
+ggplot(surv, aes(x = wing.loading.m, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
-#not sure what wing.loading is, gotta ask marina on friday 
+#slight negative
   
 ggplot(surv, aes(x = coat.perm, y = n.viable)) +
   geom_point(aes(color = code)) + 
@@ -141,47 +144,106 @@ ggplot(surv, aes(x = shape/size, y = n.viable)) +
 ggplot(surv.3, aes(x = Species, y = n.viable)) + 
   geom_boxplot(aes(color = morphologicalunit))
 
-surv.forbs <- surv[-c(16,17,18,19,20,21,22,23,24,25,41,42,43,44,45,51,52,53,54,55),]
+#surv.forbs####
 
-#no longer showing any line of fit anymore, idk why, just got updated? 
-ggplot(surv.forbs, aes(x = wing.loading, y = n.viable)) +
+surv.forbs <- filter(surv, group!="grass")
+
+ggplot(surv.forbs[surv.forbs$wing.loading.m<7,], aes(x = wing.loading.m, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
+#negative relationship with and without outliar 
 
-ggplot(surv.forbs, aes(x = coat.perm, y = n.viable)) +
+ggplot(surv.forbs, aes(x = log(coat.perm.perc), y = n.viable)) +
   geom_point(aes(color = code)) + 
-  geom_smooth(method="lm")
-coat.perm.under1000.forbs <- surv.forbs[-c(56:60),]
-ggplot(coat.perm.under1000, aes(x = as.factor(coat.perm), y = n.viable)) +
-  geom_jitter(aes(color = code)) + 
-  geom_smooth(method="lm")
+  geom_smooth(method="lm") + 
+  geom_text(aes(label=code))
+#do we like vicvil? we doubt what the morph is what we thought it was, and not adapted to california at the very least. it has no germ or survival, soooo maybe it wasn't meant to be. from the northeast maning it was grown in different conditions and can't be necesarily compared to the other species in this dataset 
 
 
-ggplot(surv.forbs, aes(x = coat.thick, y = n.viable)) +
+ggplot(surv.forbs, aes(x = log(coat.thick), y = n.viable)) +
+  geom_point(aes(color = code)) +
+  geom_smooth(method="lm")
+#asters we don't have general thickness yet, fruit coat and seed coat getting smixed up (think like sunflower seeds) 
+
+ggplot(surv.forbs, aes(x = morph.mass.mg, y = n.viable)) +
   geom_point(aes(color = code)) +
   geom_smooth(method="lm")
 
-ggplot(surv.forbs, aes(x = mass.mg, y = n.viable)) +
+ggplot(surv.forbs, aes(x = log(chem.mass.mg), y = n.viable)) +
   geom_point(aes(color = code)) +
   geom_smooth(method="lm")
+#fully horizontal 
 
 ggplot(surv.forbs, aes(x = height.cm, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
+#negative relationship
+#more indirect than direct relationships? 
+#taller seeds can move further 
 
-ggplot(surv.forbs, aes(x = shape, y = n.viable)) +
+ggplot(surv.forbs, aes(x = shape.m, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
+#positive relationship not what we expected 
 
-ggplot(surv.forbs, aes(x = size, y = n.viable)) +
+ggplot(surv.forbs, aes(x = shape.c, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
+#positive, but less relationship
 
-ggplot(surv.forbs, aes(x = coat.thick/mass.mg, y = n.viable)) +
+ggplot(surv.forbs, aes(x = size.mm.m, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
-#okay now the division isn't working anymore to create ratios sooooo idk why this is happening, this new update hates me 
+#big positive
+
+ggplot(surv.forbs, aes(x = size.mm.c, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm")
+#not much
+
+ggplot(surv.forbs, aes(x = coat.thick/chem.mass.mg, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm") + 
+  geom_text(aes(label=code))
+#miccal, coat is sepatarted from chemical unit
+#negative 
+
+ggplot(surv.forbs, aes(x = coat.thick/morph.mass.mg, y = n.viable)) +
+  geom_point(aes(color = code)) + 
+  geom_smooth(method="lm") + 
+  geom_text(aes(label=code))
+#positive
+#different species focus on different traits for survival
 
 ggplot(surv, aes(x = coat.thick/size, y = n.viable)) +
   geom_point(aes(color = code)) + 
   geom_smooth(method="lm")
+
+#goals: focus on the structure of the talk, pictures are good, focus on intro
+
+#pca####
+#principle components analysis 
+columns <- c("morph.mass.mg" , "set.time.mpsec" , "height.cm" , "shape" , "size.mm", "prop.C"  ,  "prop.N"  ,   "wing.loading" ,  "coat.perm.perc" , "E.S" , "both.thick"  )
+#coluns we want: morph.mass.mg, 
+# "morph.mass.mg" , "set.time.mpsec" , "height.cm" , "shape" , "size.mm", "area.mm2"  "prop.C"  ,  "prop.N"  , "cn" ,   "wing.loading" ,  "coat.perm.perc" , "E.S" , "both.thick"  ,  "mucilage"   
+traits.forbs <- filter(traits, Species%in%surv.forbs$Species)
+pca.forbs <-prcomp(traits.forbs[,colnames(traits.forbs)%in%columns],scale=TRUE)
+summary(pca.forbs)
+biplot(pca.forbs)
+traits.forbs.novicia <- filter(traits.forbs, Species!="Vicia villosa")
+pca.forbs.novicia <-prcomp(traits.forbs.novicia[,colnames(traits.forbs.novicia)%in%columns],scale=TRUE)
+summary(pca.forbs.novicia)
+biplot(pca.forbs.novicia)
+
+#how to extract the pca variables to use in graphs and analysis 
+
+str(pca.forbs.novicia)
+pca.forbs.novicia$x
+traits.forbs.novicia <- cbind(traits.forbs.novicia,pca.forbs.novicia$x[,1:4])
+
+#graph to heart's desire 
+#no more traits than species, maybe get rid of some more traits or look at them 
+
+#graphs with PCA numbers####
+
+
