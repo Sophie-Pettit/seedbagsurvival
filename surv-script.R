@@ -1,7 +1,6 @@
 #load libraries####
 library(ggplot2)
 library(tidyverse)
-install.packages("ggfortify")
 library(ggfortify)
 rm(list=ls())
 #try to use the data with just the forbs to clear out noise 
@@ -223,7 +222,7 @@ ggplot(surv, aes(x = coat.thick/size, y = n.viable)) +
 
 #pca####
 #principle components analysis 
-columns <- c("morph.mass.mg" , "set.time.mpsec" , "height.cm" , "shape" , "size.mm", "prop.C"  ,  "prop.N"  ,   "wing.loading" ,  "coat.perm.perc" , "E.S" , "both.thick"  )
+columns <- c("morph.mass.mglog" , "set.time.mpsec" , "height.cm" , "shape" , "size.mm", "prop.C"  ,  "prop.Nlog"  ,   "wing.loadinglog" ,  "coat.perm.perclog" , "E.S"  , "coat.thick.per.sizelog"  )
 #coluns we want: morph.mass.mg, 
 # "morph.mass.mg" , "set.time.mpsec" , "height.cm" , "shape" , "size.mm", "area.mm2"  "prop.C"  ,  "prop.N"  , "cn" ,   "wing.loading" ,  "coat.perm.perc" , "E.S" , "both.thick"  ,  "mucilage"   
 traits.forbs <- filter(traits, Species%in%surv.forbs$Species)
@@ -239,11 +238,98 @@ biplot(pca.forbs.novicia)
 
 str(pca.forbs.novicia)
 pca.forbs.novicia$x
-traits.forbs.novicia <- cbind(traits.forbs.novicia,pca.forbs.novicia$x[,1:4])
+traits.forbs.novicia <- cbind(traits.forbs.novicia,pca.forbs.novicia$x[,1:4]) 
+#traits.forbs.novicia <- traits.forbs.novicia[,-c(31:34)]
+traits.forbs.novicia <- merge(traits.forbs.novicia, surv, by = "Species", all.y = F, all.x = T)
+#merge(surv, traits, by = "Species", all.y = F, all.x = T)
 
 #graph to heart's desire 
 #no more traits than species, maybe get rid of some more traits or look at them 
 
-#graphs with PCA numbers####
+#transforming data####
+
+hist((traits.forbs.novicia$wing.loading))
+#right skewed 
+hist(log(traits.forbs.novicia$wing.loading))
+traits.forbs.novicia$wing.loadinglog <- log(traits.forbs.novicia$wing.loading)
+
+hist((traits.forbs$cn))
+#right skewed
+hist(log(traits.forbs$cn))
+#now a little left skewed, but way more normal 
+traits.forbs.novicia$cnlog <- log(traits.forbs.novicia$cn)
+
+hist(traits.forbs$prop.C)
+#left skewed
+hist(log(traits.forbs$prop.C))
+#okay the log super didn't help, not sure why
+#i have discovered why, let's see if this works 
+hist(asin(sqrt(traits.forbs$prop.C)))
+#once again worse, Idk how to fix this 
+#keep as is, no transformation 
+
+hist((traits.forbs$prop.N))
+hist(log(traits.forbs$prop.N))
+#normal with log
+traits.forbs.novicia$prop.Nlog <- log(traits.forbs.novicia$prop.N)
+
+hist((traits.forbs$coat.perm.perc))
+hist(log(traits.forbs$coat.perm.perc))
+traits.forbs.novicia$coat.perm.perclog <- log(traits.forbs.novicia$coat.perm.perc)
+#not super normal with the log either 
+#go with the log 
 
 
+hist(log(traits.forbs$both.thick/traits.forbs$size.mm))
+traits.forbs.novicia$coat.thick.per.sizelog <- log(traits.forbs.novicia$both.thick/traits.forbs.novicia$size.mm)
+#normal with log 
+
+hist(log(traits.forbs$both.thick/traits.forbs$chem.mass.mg))
+traits.forbs.novicia$coat.thick.per.mass <- log(traits.forbs.novicia$both.thick/traits.forbs.novicia$chem.mass.mg)
+#normal with log
+
+hist((traits.forbs$morph.mass.mg))
+hist(log(traits.forbs$morph.mass.mg))
+traits.forbs.novicia$morph.mass.mglog <- log(traits.forbs.novicia$morph.mass.mg)
+#use log
+
+hist(log(traits.forbs$chem.mass.mg))
+hist(sqrt(traits.forbs$chem.mass.mg))
+traits.forbs.novicia$chem.mass.mglog <- log(traits.forbs.novicia$chem.mass.mg)
+#use log
+
+hist((traits.forbs$size.mm))
+hist(log(traits.forbs$size.mm))
+traits.forbs$size.mmlog <- log(traits.forbs$size.mm)
+#still not really normal 
+#do not use log
+
+hist(traits.forbs$set.time.mpsec)
+
+hist((traits.forbs$E.S))
+hist(log(traits.forbs$E.S))
+traits.forbs$E.Slog <- log(traits.forbs$E.S)
+#way not normal with log
+hist(asin(sqrt(traits.forbs$E.S)))
+#keep as is
+
+
+#graphs with pca####
+
+ggplot(traits.forbs.novicia, aes(x = PC1, y = n.viable)) +
+  geom_point(aes(color = code)) +
+  facet_wrap(~nat.inv)
+
+ggplot(traits.forbs.novicia, aes(x = PC2, y = n.viable)) +
+  geom_point(aes(color = code)) +
+  facet_wrap(~nat.inv)
+
+ggplot(traits.forbs.novicia, aes(x = PC3, y = n.viable)) +
+  geom_point(aes(color = code))
+
+ggplot(traits.forbs.novicia, aes(x = PC1, y = n.viable)) +
+  geom_boxplot(aes(color = code)) +
+  facet_wrap(~nat.inv) 
+
+  
+  
