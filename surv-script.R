@@ -2,6 +2,7 @@
 library(ggplot2)
 library(tidyverse)
 library(ggfortify)
+library(emmeans)
 rm(list=ls())
 #try to use the data with just the forbs to clear out noise 
 #only uninoculated b/c that's what we find in nature
@@ -331,5 +332,68 @@ ggplot(traits.forbs.novicia, aes(x = PC1, y = n.viable)) +
   geom_boxplot(aes(color = code)) +
   facet_wrap(~nat.inv) 
 
-  
-  
+
+#presentation figures#### 
+surv$fun.group <- paste(surv$nat.inv,surv$group,sep=" ")
+ggplot(surv, aes(x = fun.group, y = n.viable)) + 
+  geom_boxplot() +
+  theme_bw() 
+
+fun.group.m = lm(n.viable ~ fun.group, data = surv)
+summary(fun.group.m)
+pairs(emmeans(fun.group.m, ~ fun.group), adjust = "BH")
+#coat.perm.viable = lm(size ~ n.viable, data = traits.forbs.novicia)
+#goal: Make models for other graphs. if continuous, might not need emmeans. look at linear models in google drive. 
+
+calcSE<-function(x){
+  x2<-na.omit(x)
+  sd(x2)/sqrt(length(x2))
+}
+surv.forb.sum <- traits.forbs.novicia %>%
+  group_by(Species) %>%
+  summarize(mean.viable = mean(n.viable), se.viable = calcSE(n.viable))
+
+traits.forbs <- merge(traits.forbs, surv.forb.sum, by = "Species", all.y=T, all.x = F)  
+
+traits.forbs$fun.group <- paste(traits.forbs$nat.inv,traits.forbs$group,sep=" ")
+ggplot(traits.forbs, aes(x=shape, y=mean.viable, group = fun.group,col=fun.group )) +
+  geom_point()+
+  geom_errorbar(aes(ymin=mean.viable-se.viable, ymax = mean.viable+se.viable)) +
+  geom_smooth(method = "lm") 
+
+traits.forbs <- merge(traits.forbs, surv, by = "Species", all.y = T, all.x = F)
+
+shape.m = lm(n.viable ~ shape, data = traits.forbs)
+summary(shape.m)
+#pairs(emmeans(fun.group.m, ~ fun.group), adjust = "BH")
+
+ggplot(traits.forbs, aes(x=size.mm, y=mean.viable, group = fun.group,col=fun.group )) +
+  geom_point()+
+  geom_errorbar(aes(ymin=mean.viable-se.viable, ymax = mean.viable+se.viable)) +
+  geom_smooth(method = "lm") 
+#not much, unlike expected 
+
+size.m = lm(n.viable ~ size.mm, data = traits.forbs)
+summary(size.m)
+
+ggplot(traits.forbs, aes(x=log(both.thick/size.mm), y=mean.viable)) +
+  geom_point()+
+  geom_errorbar(aes(ymin=mean.viable-se.viable, ymax = mean.viable+se.viable)) +
+  geom_smooth(method = "lm") 
+#slight but significant, driven by natives, not enought invasive to confirm that 
+
+thick.size.m = lm(n.viable ~ log(both.thick/size.mm), data = traits.forbs)
+summary(thick.size.m)
+
+ggplot(traits.forbs, aes(x=log(coat.perm.perc), y=mean.viable,group = fun.group,col=fun.group)) +
+  geom_point()+
+  geom_errorbar(aes(ymin=mean.viable-se.viable, ymax = mean.viable+se.viable)) +
+  geom_smooth(method = "lm") 
+#driving it, once again not deeply studied trait 
+
+coat.perm.perc.m = lm(n.viable ~ coat.perm.perc, data = traits.forbs)
+summary(coat.perm.perc.m)
+
+coat.perm.viable = lm(size.mm ~ n.viable, data = traits.forbs.novicia)
+
+
