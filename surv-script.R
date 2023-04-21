@@ -363,7 +363,7 @@ ggplot(traits.forbs, aes(x=shape, y=mean.viable, group = fun.group,col=fun.group
 
 traits.forbs <- merge(traits.forbs, surv, by = "Species", all.y = T, all.x = F)
 
-shape.m = lm(n.viable ~ shape, data = traits.forbs)
+shape.m = lm(sqrt(n.viable) ~ shape, data = traits.forbs)
 summary(shape.m)
 #pairs(emmeans(fun.group.m, ~ fun.group), adjust = "BH")
 
@@ -373,17 +373,22 @@ ggplot(traits.forbs, aes(x=size.mm, y=mean.viable, group = fun.group,col=fun.gro
   geom_smooth(method = "lm") 
 #not much, unlike expected 
 
-size.m = lm(n.viable ~ size.mm, data = traits.forbs)
+size.m = lm(sqrt(n.viable) ~ size.mm, data = traits.forbs)
 summary(size.m)
+#still not significant with the sqrt 
 
 ggplot(traits.forbs, aes(x=log(both.thick/size.mm), y=mean.viable)) +
   geom_point()+
   geom_errorbar(aes(ymin=mean.viable-se.viable, ymax = mean.viable+se.viable)) +
   geom_smooth(method = "lm") 
-#slight but significant, driven by natives, not enought invasive to confirm that 
+#slight but significant, driven by natives, not enough invasive to confirm that 
 
-thick.size.m = lm(n.viable ~ log(both.thick/size.mm), data = traits.forbs)
+traits.forbs$both.thick.size.mm.log <- log(traits.forbs$both.thick/traits.forbs$size.mm)
+#traits.forbs.novicia$coat.perm.perclog <- log(traits.forbs.novicia$coat.perm.perc)
+
+thick.size.m = lm(sqrt(n.viable) ~ both.thick.size.mm.log, data = traits.forbs)
 summary(thick.size.m)
+#sig with sqrt(n.viable) 
 
 ggplot(traits.forbs, aes(x=log(coat.perm.perc), y=mean.viable,group = fun.group,col=fun.group)) +
   geom_point()+
@@ -391,7 +396,7 @@ ggplot(traits.forbs, aes(x=log(coat.perm.perc), y=mean.viable,group = fun.group,
   geom_smooth(method = "lm") 
 #driving it, once again not deeply studied trait 
 
-coat.perm.perc.m = lm(n.viable ~ coat.perm.perc, data = traits.forbs)
+coat.perm.perc.m = lm(sqrt(n.viable) ~ coat.perm.perc, data = traits.forbs)
 summary(coat.perm.perc.m)
 
 coat.perm.viable = lm(size.mm ~ n.viable, data = traits.forbs.novicia)
