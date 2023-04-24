@@ -241,7 +241,6 @@ str(pca.forbs.novicia)
 pca.forbs.novicia$x
 traits.forbs.novicia <- cbind(traits.forbs.novicia,pca.forbs.novicia$x[,1:4]) 
 #traits.forbs.novicia <- traits.forbs.novicia[,-c(31:34)]
-traits.forbs.novicia <- merge(traits.forbs.novicia, surv, by = "Species", all.y = F, all.x = T)
 #merge(surv, traits, by = "Species", all.y = F, all.x = T)
 
 #graph to heart's desire 
@@ -345,6 +344,7 @@ pairs(emmeans(fun.group.m, ~ fun.group), adjust = "BH")
 #coat.perm.viable = lm(size ~ n.viable, data = traits.forbs.novicia)
 #goal: Make models for other graphs. if continuous, might not need emmeans. look at linear models in google drive. 
 
+traits.forbs.novicia <- merge(traits.forbs.novicia, surv, by = "Species", all.y = T, all.x = F)
 calcSE<-function(x){
   x2<-na.omit(x)
   sd(x2)/sqrt(length(x2))
